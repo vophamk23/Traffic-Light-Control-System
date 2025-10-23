@@ -35,7 +35,7 @@ int button_flag[3] = {0, 0, 0};
 int button_long_pressed[3] = {0, 0, 0};
 
 // Bộ đếm khởi động - BỎ QUA NÚT TRONG 100ms ĐẦU
-int startup_counter = 10;  // 10 lần x 10ms = 100ms
+int startup_counter = 10; // 10 lần x 10ms = 100ms
 
 /* ==================================================================
  * HÀM KIỂM TRA TRẠNG THÁI NÚT (GỌI TRONG MAIN)
@@ -117,7 +117,8 @@ void subKeyProcess(int index)
 void getKeyInput()
 {
   // BỎ QUA NÚT NHẤN TRONG 100ms ĐẦU TIÊN
-  if(startup_counter > 0) {
+  if (startup_counter > 0)
+  {
     startup_counter--;
     return;
   }
@@ -153,7 +154,7 @@ void getKeyInput()
         if (KeyReg3[i] == PRESSED_STATE)
         {
           subKeyProcess(i);
-          TimeOutForKeyPress[i] = 500;  // 100 x 10ms = 1000ms
+          TimeOutForKeyPress[i] = 500;
         }
       }
       else
@@ -163,7 +164,7 @@ void getKeyInput()
 
         if (TimeOutForKeyPress[i] == 0)
         {
-          TimeOutForKeyPress[i] = 500;  // Reset về 1 giây
+          TimeOutForKeyPress[i] = 500;
 
           if (KeyReg3[i] == PRESSED_STATE)
           {

@@ -5,6 +5,33 @@
 
 #ifndef INC_GLOBAL_H_
 #define INC_GLOBAL_H_
+/* ============================================================================
+ * TIMER CONFIGURATION - Exercise 4
+ * ============================================================================
+ * INSTRUCTION: Only modify the value of TIMER_INTERRUPT_MS to adjust
+ * the timer interrupt frequency. All dependent calculations will
+ * automatically update accordingly.
+ *
+ * EXAMPLES:
+ * - TIMER_INTERRUPT_MS = 1   → Timer interrupt occurs every 1 ms
+ * - TIMER_INTERRUPT_MS = 10  → Timer interrupt occurs every 10 ms (default)
+ * - TIMER_INTERRUPT_MS = 100 → Timer interrupt occurs every 100 ms
+ */
+
+// CONFIGURATION PARAMETER - Change only this value
+#define TIMER_INTERRUPT_MS 10 // Timer interrupt interval (in milliseconds)
+
+// AUTO-CALCULATED CONSTANTS (DO NOT MODIFY)
+#define CYCLES_PER_SECOND (1000 / TIMER_INTERRUPT_MS) // Number of interrupts per second
+#define CYCLES_PER_250MS (250 / TIMER_INTERRUPT_MS)   // Number of interrupts per 250 ms
+
+// Derived constants for system logic
+#define TIMER_CYCLE CYCLES_PER_SECOND      // Used for 1-second traffic light updates
+#define MAX_BLINK_COUNTER CYCLES_PER_250MS // Used for LED blinking at 2 Hz (250 ms cycle)
+
+/* ============================================================================
+ * END OF TIMER CONFIGURATION
+ * ============================================================================ */
 
 /* ==================================================================
  * ENUM DECLARATIONS
@@ -55,9 +82,8 @@ extern enum MODE current_mode;           // Current operation mode
 extern enum TRAFFIC_STATE traffic_state; // Current traffic light state
 
 // LED blinking control
-extern int blink_counter;     // Blink counter
-extern int MAX_BLINK_COUNTER; // Blink counter threshold
-extern int flag_blink;        // Blink state flag
+extern int blink_counter; // Blink counter
+extern int flag_blink;    // Blink state flag
 
 // LED state flags (for 2 roads)
 extern int flagRed[2];    // RED LED states for both roads

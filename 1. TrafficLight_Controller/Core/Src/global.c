@@ -54,12 +54,6 @@ int blink_counter = 0; // Counter for blinking effect
                        // Increments every timer interrupt (10ms)
                        // Resets when reaching MAX_BLINK_COUNTER
 
-int MAX_BLINK_COUNTER = 25; // Blink counter threshold
-                            // 25 × 10ms = 250ms
-                            // LED toggles every 0.25s
-                            // Blink cycle = 0.5s (0.25s ON + 0.25s OFF)
-                            // Frequency = 2Hz
-
 int flag_blink = 0; // Blink state flag
                     // 0: LED off in blink cycle
                     // 1: LED on in blink cycle
