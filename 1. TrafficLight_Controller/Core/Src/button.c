@@ -1,44 +1,44 @@
 #include "button.h"
 
 /* ==================================================================
- * GIẢI THÍCH CƠ CHẾ HOẠT ĐỘNG:
+ * MODULE OVERVIEW:
  *
- * Module này xử lý 3 nút bấm với các tính năng:
- * 1. DEBOUNCING (Chống dội): Loại bỏ nhiễu cơ học của nút
- * 2. SHORT PRESS: Phát hiện nhấn nhanh
- * 3. LONG PRESS: Phát hiện nhấn giữ (sau 1 giây)
+ * This module handles 3 buttons with the following features:
+ * 1. DEBOUNCING: Eliminates mechanical noise when pressing a button.
+ * 2. SHORT PRESS: Detects a single short press event.
+ * 3. LONG PRESS: Detects a press held longer than 1 second.
  *
- * THỜI GIAN:
- * - Hàm getKeyInput() được gọi mỗi 10ms trong timer interrupt
- * - Debounce time = 3 lần x 10ms = 30ms
- * - Long press = 100 lần x 10ms = 1000ms (1 giây)
+ * TIMING:
+ * - getKeyInput() is called every 10ms in the timer interrupt.
+ * - Debounce time  = 3 × 10ms = 30ms
+ * - Long press     = 100 × 10ms = 1000ms (1 second)
  * ================================================================== */
 
 // ==================================================================
-// KHAI BÁO BIẾN TOÀN CỤC
+// GLOBAL VARIABLES
 // ==================================================================
 
-// Các thanh ghi lưu trạng thái nút qua các lần đọc (cho 3 nút)
+// Button state registers (store last 4 readings for 3 buttons)
 int KeyReg0[3] = {NORMAL_STATE, NORMAL_STATE, NORMAL_STATE};
 int KeyReg1[3] = {NORMAL_STATE, NORMAL_STATE, NORMAL_STATE};
 int KeyReg2[3] = {NORMAL_STATE, NORMAL_STATE, NORMAL_STATE};
 int KeyReg3[3] = {NORMAL_STATE, NORMAL_STATE, NORMAL_STATE};
 
-// Bộ đếm thời gian cho long press
-// 100 lần gọi x 10ms = 1000ms (1 giây)
+// Timer counters for long press detection
+// 100 calls × 10ms = 1000ms (1 second)
 int TimeOutForKeyPress[3] = {100, 100, 100};
 
-// Cờ báo hiệu nút được nhấn (short press)
+// Flags for short press events
 int button_flag[3] = {0, 0, 0};
 
-// Cờ báo hiệu nút được nhấn giữ (long press)
+// Flags for long press events
 int button_long_pressed[3] = {0, 0, 0};
 
-// Bộ đếm khởi động - BỎ QUA NÚT TRONG 100ms ĐẦU
-int startup_counter = 10; // 10 lần x 10ms = 100ms
+// Startup counter – ignore button inputs for the first 100ms
+int startup_counter = 10; // 10 × 10ms = 100ms
 
 /* ==================================================================
- * HÀM KIỂM TRA TRẠNG THÁI NÚT (GỌI TRONG MAIN)
+ * BUTTON STATE CHECK FUNCTIONS (CALLED IN MAIN LOOP)
  * ================================================================== */
 
 int isButton1Pressed()
@@ -102,21 +102,31 @@ int isButton3LongPressed()
 }
 
 /* ==================================================================
- * XỬ LÝ SỰ KIỆN NÚT BẤM
+ * EVENT HANDLER
  * ================================================================== */
 
+/**
+ * subKeyProcess() - Triggered when a button press is detected.
+ * @index: index of the button (0–2)
+ */
 void subKeyProcess(int index)
 {
   button_flag[index] = 1;
 }
 
 /* ==================================================================
- * HÀM CHÍNH - ĐỌC VÀ XỬ LÝ NÚT BẤM (GỌI TRONG TIMER INTERRUPT)
+ * MAIN BUTTON PROCESSING FUNCTION
+ * ==================================================================
+ *
+ * getKeyInput() should be called every 10ms in the timer interrupt.
+ * Steps:
+ * 1. Debounce input by checking three consecutive stable reads.
+ * 2. Detect short press when state changes to PRESSED.
+ * 3. Detect long press every 500ms while held.
  * ================================================================== */
-
 void getKeyInput()
 {
-  // BỎ QUA NÚT NHẤN TRONG 100ms ĐẦU TIÊN
+  // Ignore buttons for the first 100ms after startup
   if (startup_counter > 0)
   {
     startup_counter--;
@@ -125,11 +135,11 @@ void getKeyInput()
 
   for (int i = 0; i < 3; i++)
   {
-    // ===== BƯỚC 1: DỊCH CHUYỂN GIÁ TRỊ CŨ =====
+    // Step 1: Shift previous readings
     KeyReg2[i] = KeyReg1[i];
     KeyReg1[i] = KeyReg0[i];
 
-    // ===== BƯỚC 2: ĐỌC GIÁ TRỊ MỚI TỪ GPIO =====
+    // Step 2: Read new value from GPIO
     switch (i)
     {
     case 0:
@@ -143,10 +153,10 @@ void getKeyInput()
       break;
     }
 
-    // ===== BƯỚC 3: DEBOUNCING - KIỂM TRA 3 LẦN ĐỌC GIỐNG NHAU =====
+    // Step 3: Debouncing – verify 3 consecutive stable readings
     if ((KeyReg1[i] == KeyReg0[i]) && (KeyReg1[i] == KeyReg2[i]))
     {
-      // ===== BƯỚC 4: PHÁT HIỆN THAY ĐỔI TRẠNG THÁI =====
+      // Step 4: Detect state change
       if (KeyReg3[i] != KeyReg2[i])
       {
         KeyReg3[i] = KeyReg2[i];
@@ -154,17 +164,17 @@ void getKeyInput()
         if (KeyReg3[i] == PRESSED_STATE)
         {
           subKeyProcess(i);
-          TimeOutForKeyPress[i] = 500;
+          TimeOutForKeyPress[i] = 100;
         }
       }
       else
       {
-        // ===== BƯỚC 5: XỬ LÝ NHẤN GIỮ (LONG PRESS) =====
+        // Step 5: Handle long press
         TimeOutForKeyPress[i]--;
 
         if (TimeOutForKeyPress[i] == 0)
         {
-          TimeOutForKeyPress[i] = 500;
+          TimeOutForKeyPress[i] = 100;
 
           if (KeyReg3[i] == PRESSED_STATE)
           {
